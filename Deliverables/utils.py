@@ -6,6 +6,9 @@ import seaborn as sns
 sns.set()
 import zipfile
 
+# --- Evaluation Metrics ---
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+
 def check_code_description_combinations(df, code_column, description_column):
     # Count unique combinations of Code and Description
     unique_combinations = df[[code_column, description_column]].drop_duplicates()
@@ -126,3 +129,41 @@ def categorize_promptness(df, date1_col, date2_col, new_col_name):
         right=True
     )
     return df
+
+#Function used in Modeling - File: Deliverables/Notebooks 2., 3., 4. and 5.
+# Define a function to print metrics and plot a colorful confusion matrix
+def metrics(y_train, pred_train, y_val, pred_val):
+    # Print classification report for training data
+    print('___________________________________________________________________________________________________________')
+    print('                                                     TRAIN                                                 ')
+    print('-----------------------------------------------------------------------------------------------------------')
+    print(classification_report(y_train, pred_train))
+    # train_cm = confusion_matrix(y_train, pred_train)
+    # print(train_cm)
+    
+    # Plot confusion matrix for training data
+    plt.figure(figsize=(10, 4))
+    plt.subplot(1, 2, 1)
+    sns.heatmap(train_cm, annot=True, cmap='Blues', fmt='d', cbar=False)
+    plt.title('Training Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    
+    # Print classification report for validation data
+    print('___________________________________________________________________________________________________________')
+    print('                                                VALIDATION                                                 ')
+    print('-----------------------------------------------------------------------------------------------------------')
+    print(classification_report(y_val, pred_val))
+    # val_cm = confusion_matrix(y_val, pred_val)
+    # print(val_cm)
+
+    # Plot confusion matrix for validation data
+    plt.subplot(1, 2, 2)
+    sns.heatmap(val_cm, annot=True, cmap='Oranges', fmt='d', cbar=False)
+    plt.title('Validation Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    
+    # Show the plots
+    plt.tight_layout()
+    plt.show()
