@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
 import zipfile
+from sklearn.metrics import confusion_matrix
+
 
 # --- Evaluation Metrics ---
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
@@ -138,7 +140,7 @@ def metrics(y_train, pred_train, y_val, pred_val):
     print('                                                     TRAIN                                                 ')
     print('-----------------------------------------------------------------------------------------------------------')
     print(classification_report(y_train, pred_train))
-    # train_cm = confusion_matrix(y_train, pred_train)
+    train_cm = confusion_matrix(y_train, pred_train)
     # print(train_cm)
     
     # Plot confusion matrix for training data
@@ -154,7 +156,7 @@ def metrics(y_train, pred_train, y_val, pred_val):
     print('                                                VALIDATION                                                 ')
     print('-----------------------------------------------------------------------------------------------------------')
     print(classification_report(y_val, pred_val))
-    # val_cm = confusion_matrix(y_val, pred_val)
+    val_cm = confusion_matrix(y_val, pred_val)
     # print(val_cm)
 
     # Plot confusion matrix for validation data
