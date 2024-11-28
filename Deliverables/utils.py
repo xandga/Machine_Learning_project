@@ -30,9 +30,6 @@ def check_code_description_combinations(df, code_column, description_column):
         print(f"There is a discrepancy between the number of unique combinations and the total counts of {code_column} and {description_column}.")
         
         
-        
-        
-        
 ##3.3.2. Multivariate Analysis    
 def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
     for binary_var in binary_vars:
