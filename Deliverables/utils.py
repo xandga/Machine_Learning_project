@@ -6,6 +6,14 @@ import seaborn as sns
 sns.set()
 import zipfile
 from sklearn.metrics import confusion_matrix
+from sklearn.feature_selection import RFE
+from sklearn.metrics import f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.feature_selection import mutual_info_classif
+
 
 
 # --- Evaluation Metrics ---
@@ -129,7 +137,225 @@ def categorize_promptness(df, date1_col, date2_col, new_col_name):
     )
     return df
 
-#Function used in Modeling - File: Deliverables/Notebooks 2., 3., 4. and 5.
+
+
+
+############################################################################################################
+#-------------- Functions used in Modeling - File: Deliverables/Notebooks 2., 3., 4. and 5. ------------
+############################################################################################################
+
+### In feature selection ####
+# Used to plot correlation matrix
+def cor_heatmap(cor, name):
+    plt.figure(figsize=(18,12))
+    sns.heatmap(data = cor.round(2), annot = True, cmap = 'viridis', linecolor = 'white', linewidth=0.5, fmt='.2', mask=np.triu(cor, k=0))
+    plt.title(f'{name} Correlation Matrix', fontdict = {'fontsize': 20})
+    plt.show()
+    
+#Used to plot lasso coefficients 
+def plot_importance(coef, name):
+    imp_coef = coef.sort_values()
+    plt.figure(figsize=(3,5))
+    imp_coef.plot(kind="barh", color="c")
+    plt.title("Feature importance using " + name + " Model")
+    plt.show()
+
+#This function is it to find the optimal number of features using Recursive Feature Elimination (RFE) and evaluates using F1 Macro score.
+def find_optimal_features_with_rfe(model, X_train, y_train, X_val, y_val, max_features=8):
+    """
+    Finds the optimal number of features using Recursive Feature Elimination (RFE) 
+    and evaluates using F1 Macro score.
+    
+    Parameters:
+    - model: The machine learning model (e.g., LogisticRegression()).
+    - X_train: Scaled training feature set (numpy array or DataFrame).
+    - y_train: Encoded training target labels.
+    - X_val: Scaled validation feature set (numpy array or DataFrame).
+    - y_val: Encoded validation target labels.
+    - max_features: Maximum number of features to evaluate (default=8).
+
+    Returns:
+    - best_features: Optimal number of features for the highest F1 Macro score.
+    - best_score: The highest F1 Macro score achieved.
+    - scores_list: List of F1 Macro scores for each number of features.
+    """
+    nof_list = np.arange(1, max_features + 1)
+    high_score = 0
+    best_features = 0
+    scores_list = []
+
+    for n in nof_list:
+        rfe = RFE(model, n_features_to_select=n)
+        
+        # Transform training and validation sets with RFE
+        X_train_rfe = rfe.fit_transform(X_train, y_train)
+        X_val_rfe = rfe.transform(X_val)
+        
+        # Fit the model
+        model.fit(X_train_rfe, y_train)
+        
+        # Predict on the validation set
+        y_val_pred = model.predict(X_val_rfe)
+        
+        # Calculate F1 Macro score
+        score = f1_score(y_val, y_val_pred, average='macro')
+        scores_list.append(score)
+        
+        if score > high_score:
+            high_score = score
+            best_features = n
+    
+    print(f"Optimum number of features: {best_features}")
+    print(f"F1 Macro Score with {best_features} features: {high_score:.6f}")
+    
+    return best_features, high_score, scores_list
+
+#Function to plot decision tree feature importance
+def compare_feature_importances(X_train, y_train, figsize=(13, 5)):
+    """
+    Compares feature importances using Gini and Entropy criteria in a Decision Tree Classifier 
+    and visualizes the results in a bar plot.
+
+    Parameters:
+    - X_train: Training feature set (DataFrame or array with column names).
+    - y_train: Target labels for training.
+    - figsize: Tuple specifying the figure size for the plot (default=(13, 5)).
+
+    Returns:
+    - zippy: DataFrame containing feature importances for Gini and Entropy.
+    """
+    # Calculate feature importances using Gini and Entropy criteria
+    gini_importance = DecisionTreeClassifier().fit(X_train, y_train).feature_importances_
+    entropy_importance = DecisionTreeClassifier(criterion='entropy').fit(X_train, y_train).feature_importances_
+    
+    # Create a DataFrame to store and organize the feature importances
+    zippy = pd.DataFrame(zip(gini_importance, entropy_importance), columns=['gini', 'entropy'])
+    zippy['col'] = X_train.columns  # Add column names
+    
+    # Melt the DataFrame for easier plotting with Seaborn
+    tidy = zippy.melt(id_vars='col').rename(columns=str.title)
+    tidy.sort_values(['Value'], ascending=False, inplace=True)
+    
+    # Plot the feature importances
+    plt.figure(figsize=figsize)
+    sns.barplot(y='Col', x='Value', hue='Variable', data=tidy)
+    plt.title("Feature Importances: Gini vs Entropy")
+    plt.xlabel("Importance")
+    plt.ylabel("Feature")
+    plt.legend(title="Criterion")
+    plt.show()
+    
+    return zippy
+
+#This function is it to compare feature importances using Gini and Entropy criteria in a Random Forest Classifier and visualizes the results in a bar plot.
+def compare_rf_feature_importances(X_train, y_train, figsize=(13, 5), random_state=42):
+    """
+    Compares feature importances using Gini and Entropy criteria in a Random Forest Classifier 
+    and visualizes the results in a bar plot.
+
+    Parameters:
+    - X_train: Training feature set (DataFrame or array with column names).
+    - y_train: Target labels for training.
+    - figsize: Tuple specifying the figure size for the plot (default=(13, 5)).
+    - random_state: Random state for reproducibility (default=42).
+
+    Returns:
+    - importances: DataFrame containing feature importances for Gini and Entropy.
+    """
+    # Calculate feature importances using Gini and Entropy criteria
+    gini_importance = RandomForestClassifier(random_state=random_state).fit(X_train, y_train).feature_importances_
+    entropy_importance = RandomForestClassifier(criterion='entropy', random_state=random_state).fit(X_train, y_train).feature_importances_
+    
+    # Create a DataFrame to store and organize the feature importances
+    importances = pd.DataFrame({
+        'gini': gini_importance,
+        'entropy': entropy_importance,
+        'col': X_train.columns
+    })
+    
+    # Melt the DataFrame for easier plotting with Seaborn
+    tidy = importances.melt(id_vars='col').rename(columns=str.title)
+    tidy.sort_values(['Value'], ascending=False, inplace=True)
+    
+    # Plot the feature importances
+    plt.figure(figsize=figsize)
+    sns.barplot(y='Col', x='Value', hue='Variable', data=tidy)
+    plt.title("Random Forest Feature Importances: Gini vs Entropy")
+    plt.xlabel("Importance")
+    plt.ylabel("Feature")
+    plt.legend(title="Criterion")
+    plt.show()
+    
+    return importances
+
+
+#This function is used to select top k features based on scores using Chi-square test.
+def select_high_score_features_chi2_no_model(X_train, y_train, threshold=25):
+    """
+    Performs Chi-square test to select top k features based on scores.
+
+    Parameters:
+    - X_train: Training feature set (DataFrame).
+    - y_train: Training target labels.
+    - threshold: Number of top features to select (default=25).
+
+    Returns:
+    - high_score_features: List of top feature names based on Chi-square scores.
+    - scores: Corresponding Chi-square scores of the selected features.
+    """
+    # Perform Chi-square test
+    feature_scores = SelectKBest(chi2, k=threshold).fit(X_train, y_train).scores_
+
+    # Select top features
+    high_score_features = []
+    scores = []
+    for score, f_name in sorted(zip(feature_scores, X_train.columns), reverse=True)[:threshold]:
+        high_score_features.append(f_name)
+        scores.append(score)
+
+    print(f"Top {threshold} features based on Chi-square scores:", high_score_features)
+    print("Corresponding Chi-square scores:", scores)
+
+    return high_score_features, scores
+
+#This function is used to select top k features based on scores using MIC test.
+def select_high_score_features_MIC(X_train, y_train, threshold=25, random_state=42):
+    """
+    Selects the top features based on Mutual Information Criterion (MIC).
+
+    Parameters:
+    - X_train: Training feature set (DataFrame or array).
+    - y_train: Training target labels (array-like).
+    - threshold: Number of top features to select (default=25).
+    - random_state: Random state for reproducibility (default=42).
+
+    Returns:
+    - high_score_features: List of top feature names based on MIC scores.
+    - scores: Corresponding MIC scores of the selected features.
+    """
+    # Calculate MIC scores
+    feature_scores = mutual_info_classif(X_train, y_train, random_state=random_state)
+
+    # Select top features based on MIC scores
+    high_score_features = []
+    scores = []
+    for score, f_name in sorted(zip(feature_scores, X_train.columns), reverse=True)[:threshold]:
+        high_score_features.append(f_name)
+        scores.append(score)
+
+    print(f"Top {threshold} features based on MIC scores:", high_score_features)
+    print("Corresponding MIC scores:", scores)
+
+    return high_score_features, scores
+
+
+
+
+
+
+
+    
+
 # Define a function to print metrics and plot a colorful confusion matrix
 def metrics(y_train, pred_train, y_val, pred_val):
     # Print classification report for training data
