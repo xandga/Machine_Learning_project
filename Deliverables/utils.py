@@ -19,6 +19,10 @@ from sklearn.feature_selection import mutual_info_classif
 # --- Evaluation Metrics ---
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
+############################################################################################################
+#----------------------------------- Functions used in Notebooks 1. ---------------------------------------
+############################################################################################################
+
 def check_code_description_combinations(df, code_column, description_column):
     # Count unique combinations of Code and Description
     unique_combinations = df[[code_column, description_column]].drop_duplicates()
@@ -69,6 +73,47 @@ def convert_zip_code(zip_code):
     if len(zip_code_str) == 4:
         return zip_code_str.zfill(5)  # Add leading zero if length is 4
     return zip_code_str
+
+############################################################################################################
+#----------------------------------- Functions used in Notebooks 2. ---------------------------------------
+############################################################################################################
+
+#### 4.1. Outliers
+def analyze_numerical_outliers(df, columns):
+    """
+    Analyze numerical variables for potential outliers using the Interquartile Range (IQR) method.
+
+    Parameters:
+    df : pandas.DataFrame
+        The input DataFrame containing numerical variables.
+    columns : list of str
+        The list of column names to analyze for outliers.
+
+    Returns:
+    numerical_outliers : dict
+        A dictionary where the keys are column names and the values are the count of outliers detected 
+        in each column.
+
+    Method:
+    - For each column, calculate the IQR (Interquartile Range).
+    - Define the lower and upper bounds for outliers as:
+        - Lower Bound: Q1 - 1.5 * IQR
+        - Upper Bound: Q3 + 1.5 * IQR
+    - Identify rows with values outside these bounds and count them.
+    """
+    numerical_outliers = {}
+    for column in columns:
+        Q1 = df[column].quantile(0.25)  # First quartile (25%)
+        Q3 = df[column].quantile(0.75)  # Third quartile (75%)
+        IQR = Q3 - Q1                   # Interquartile range
+        lower_bound = Q1 - 1.5 * IQR    # Lower bound for outliers
+        upper_bound = Q3 + 1.5 * IQR    # Upper bound for outliers
+        # Identify outliers
+        outliers = df[(df[column] < lower_bound) | (df[column] > upper_bound)]
+        outliers_count = outliers.shape[0]
+        numerical_outliers[column] = outliers_count
+    return numerical_outliers
+
 
 
 #### 5.2. Missing Values
@@ -141,7 +186,7 @@ def categorize_promptness(df, date1_col, date2_col, new_col_name):
 
 
 ############################################################################################################
-#-------------- Functions used in Modeling - File: Deliverables/Notebooks 2., 3., 4. and 5. ------------
+#-------------- Functions used in Modeling - File: Deliverables/Notebooks 3., 4., 5. and 6. ------------
 ############################################################################################################
 
 ### In feature selection ####
