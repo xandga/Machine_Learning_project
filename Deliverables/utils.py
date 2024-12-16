@@ -50,7 +50,7 @@ def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
         # Loop through each categorical variable in the list
         for categorical_var in categorical_vars:
             plt.figure(figsize=(12, 6))  # Adjust figure size
-            ax = sns.countplot(data=df, x=categorical_var, hue=binary_var, palette="deep")  # Generate count plot
+            ax = sns.countplot(data=data, x=categorical_var, hue=binary_var, palette="deep")  # Generate count plot
             
             # Add annotations to display counts on top of the bars
             for container in ax.containers:
