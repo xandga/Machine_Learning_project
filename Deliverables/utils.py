@@ -43,6 +43,8 @@ def check_code_description_combinations(df, code_column, description_column):
         
         
 ##3.3.2. Multivariate Analysis    
+
+# Binary Variables against Categorical Variables
 def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
     # Loop through each binary variable in the list
     for binary_var in binary_vars:
@@ -63,6 +65,30 @@ def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
             plt.tight_layout()  # Adjust layout to prevent overlap
             plt.legend(title=binary_var, loc='upper right')  # Set legend
             plt.show()  # Display the plot
+
+# Discrete Variables against Binary Variables    
+def plot_count_for_binary_and_discrete(data, binary_vars, discrete_vars):
+    # Loop through each binary variable
+    for binary_var in binary_vars:
+        print(f"Binary Variable: {binary_var}\n")  # Print the binary variable being plotted
+        
+        # Loop through each discrete variable
+        for discrete_var in discrete_vars:
+            plt.figure(figsize=(12, 6))  # Set figure size
+            ax = sns.countplot(data=data, x=discrete_var, hue=binary_var, palette="deep")  # Create the count plot
+            
+            # Add annotations to show counts on top of the bars
+            for container in ax.containers:
+                ax.bar_label(container, fmt='%d', label_type='edge', fontsize=8, padding=3)
+            
+            plt.title(f"Distribution of {binary_var} by {discrete_var}")  # Set the title
+            plt.xlabel(discrete_var)  # Set x-axis label
+            plt.ylabel("Count")  # Set y-axis label
+            plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+            plt.tight_layout()  # Adjust layout to prevent overlap
+            plt.legend(title=binary_var, loc='upper right')  # Add legend
+            plt.show()  # Display the plot
+
           
             
 ### 3.2.10. Handling Zip code format
