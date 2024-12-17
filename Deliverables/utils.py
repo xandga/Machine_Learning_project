@@ -66,7 +66,7 @@ def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
             plt.legend(title=binary_var, loc='upper right')  # Set legend
             plt.show()  # Display the plot
 
-# Discrete Variables against Binary Variables    
+# Discrete Variables against Binary Variables     
 def plot_count_for_binary_and_discrete(data, binary_vars, discrete_vars):
     # Loop through each binary variable
     for binary_var in binary_vars:
@@ -74,20 +74,34 @@ def plot_count_for_binary_and_discrete(data, binary_vars, discrete_vars):
         
         # Loop through each discrete variable
         for discrete_var in discrete_vars:
-            plt.figure(figsize=(12, 6))  # Set figure size
-            ax = sns.countplot(data=data, x=discrete_var, hue=binary_var, palette="deep")  # Create the count plot
+            plt.figure(figsize=(16, 8))  # Increase figure size for better clarity
             
-            # Add annotations to show counts on top of the bars
+            # Create the count plot with improved aesthetics
+            ax = sns.countplot(
+                data=data, 
+                x=discrete_var, 
+                hue=binary_var, 
+                palette="muted", 
+                linewidth=0.5, 
+                edgecolor="gray"
+            )
+            
+            # Add annotations to display counts on top of the bars
             for container in ax.containers:
                 ax.bar_label(container, fmt='%d', label_type='edge', fontsize=8, padding=3)
             
-            plt.title(f"Distribution of {binary_var} by {discrete_var}")  # Set the title
-            plt.xlabel(discrete_var)  # Set x-axis label
-            plt.ylabel("Count")  # Set y-axis label
-            plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
-            plt.tight_layout()  # Adjust layout to prevent overlap
+            # Improve titles and labels for clarity
+            plt.title(f"Distribution of {binary_var} by {discrete_var}", fontsize=14, fontweight='bold')  
+            plt.xlabel(discrete_var, fontsize=12)  
+            plt.ylabel("Count", fontsize=12)  
+            plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
+            
+            # Optimize layout to avoid overlapping elements
+            plt.tight_layout()  
             plt.legend(title=binary_var, loc='upper right')  # Add legend
+            
             plt.show()  # Display the plot
+
 
           
             
