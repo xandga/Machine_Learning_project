@@ -68,20 +68,20 @@ def plot_count_for_binary_and_categorical(data, binary_vars, categorical_vars):
 
 # Discrete Variables against Binary Variables     
 def plot_count_for_binary_and_discrete(data, binary_vars, discrete_vars):
-    # Loop through each binary variable
-    for binary_var in binary_vars:
-        print(f"Binary Variable: {binary_var}\n")  # Print the binary variable being plotted
+    for discrete_var in discrete_vars:
+        print(f"Discrete Variable: {discrete_var}\n")  # Print the binary variable being plotted
         
-        # Loop through each discrete variable
-        for discrete_var in discrete_vars:
+        # Loop through each categorical variable
+        for binary_var in binary_vars:
             plt.figure(figsize=(16, 8))  # Increase figure size for better clarity
             
-            # Create the count plot with improved aesthetics
+            # Create the count plot with aesthetics for categorical variables
             ax = sns.countplot(
                 data=data, 
-                x=discrete_var, 
-                hue=binary_var, 
+                x=binary_var, 
+                hue=discrete_var, 
                 palette="muted", 
+                order=data[binary_var].value_counts().index,  # Order categories by frequency
                 linewidth=0.5, 
                 edgecolor="gray"
             )
@@ -91,17 +91,17 @@ def plot_count_for_binary_and_discrete(data, binary_vars, discrete_vars):
                 ax.bar_label(container, fmt='%d', label_type='edge', fontsize=8, padding=3)
             
             # Improve titles and labels for clarity
-            plt.title(f"Distribution of {binary_var} by {discrete_var}", fontsize=14, fontweight='bold')  
-            plt.xlabel(discrete_var, fontsize=12)  
+            plt.title(f"Distribution of {discrete_var} by {binary_var}", fontsize=14, fontweight='bold')  
+            plt.xlabel(binary_var, fontsize=12)  
             plt.ylabel("Count", fontsize=12)  
             plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
             
             # Optimize layout to avoid overlapping elements
             plt.tight_layout()  
-            plt.legend(title=binary_var, loc='upper right')  # Add legend
+            plt.legend(title=discrete_var, loc='upper right')  # Add legend
             
             plt.show()  # Display the plot
-
+            
 # Discrete Variables against Categorical Variables    
 def plot_count_for_discrete_and_categorical(data, discrete_vars, categorical_vars):
     # Loop through each binary variable
